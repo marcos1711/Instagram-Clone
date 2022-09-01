@@ -1,0 +1,114 @@
+#Command used to initalize mysql 
+# mysql-ctl cli
+
+#-----------------
+#Query used to find the oldest users 
+#This can often be used to target sepcific users and reward them for their loyalty 
+
+SELECT * 
+FROM users
+ORDER BY created_at
+LIMIT 10;
+
+
+# ---------------------
+#Query used to find out which day of the week most people registered
+#This can be used for advertisment, figure which day is best to run an add
+SELECT 
+    DAYNAME(created_at) AS day,
+    COUNT(*) AS total
+FROM users
+GROUP BY day
+ORDER BY total;
+
+#-----------------------
+#Query used to identify unactive users, those who created an account but never posted
+#Will return all users who havent posted anything
+SELECT username
+FROM users
+LEFT JOIN photos
+    ON users.id = photos.user_id
+WHERE photos.id IS NULL;
+
+#----------------------
+#Query used to find the most liked photo
+#Will also show who posted that photo
+
+
+SELECT 
+    username,
+    photos.id,
+    photos.image_url, 
+    COUNT(*) AS total
+FROM photos
+INNER JOIN likes
+    ON likes.photo_id = photos.id
+INNER JOIN users
+    ON photos.user_id = users.id
+GROUP BY photos.id
+ORDER BY total DESC
+LIMIT 1;
+
+#----------------------------
+#Query Used to calcualte the averge number of photos per user
+#Simple Query, but intresting 
+
+
+SELECT (SELECT Count(*) 
+        FROM   photos) / (SELECT Count(*) 
+                          FROM   users) AS avg; 
+                          
+#----------------------------------  
+#Query used to find the most popuplar hashtagsALTER
+#This can be used to figure out waht hashtags are the most popular 
+#Can help with advertisement 
+
+SELECT tags.tag_name, 
+       Count(*) AS total 
+FROM   photo_tags 
+       JOIN tags 
+         ON photo_tags.tag_id = tags.id 
+GROUP  BY tags.id 
+ORDER  BY total DESC 
+LIMIT  5; 
+
+# -------------------------
+# Querey used to find bots, 
+# Look for users who have liked every single photo/post
+# This is often used in realife apps but compliexty varies depending on detauls
+
+SELECT username, 
+       Count(*) AS num_likes 
+FROM   users 
+       INNER JOIN likes 
+               ON users.id = likes.user_id 
+GROUP  BY likes.user_id 
+HAVING num_likes = (SELECT Count(*) 
+                    FROM   photos); 
+
+
+#INSERT
+#Inserting a new person at id 0
+#This command disapys the BEFORE status
+SELECT * From users ORDER BY id DESC LIMIT 10;
+#This command Inserts the value for a new user which goes at the end
+INSERT INTO users values ('Evan_Madrigal', '2017-02-16 18:22:10.846' );
+
+
+#Displays the BEFORE status of tags
+SELECT * From tags ORDER BY id DESC LIMIT 10;
+#Inserting a new tag for anyone who wants to tag our CSci 126 Course
+INSERT INTO tags values (22, 'CSci126', '2022-05-02 18:21:14.846');
+
+
+
+
+
+#UPDATE
+#Updates the username from Kenton _Kirlin to David Ruby
+#This would help if a user needs to change their old username 
+update users set username = "David Ruby" where id = 1;
+
+#Update the tags from food to drinks
+#This would help if there are repeating tags and another has to be created
+update tags set tag_name = "drinks" where id = 5;
